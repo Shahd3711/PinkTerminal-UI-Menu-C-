@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 #include <termios.h>
-
+ 
 extern struct termios orig_termios;
 
 void clearScreen();
