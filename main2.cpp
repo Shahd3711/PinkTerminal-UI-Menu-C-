@@ -1,70 +1,105 @@
 #include <iostream>
-#include <vector>
-#include <string>
+#include "pixx.h"
+#ifdef _WIN32
+#include <conio.h>
+#include <windows.h>
+#define sleep(x) Sleep((x)*1000)
+#else
 #include <unistd.h>
-#include <termios.h>
-#include <sys/ioctl.h>
-#include "pix.h"
+#endif
 using namespace std;
 
-//1001: Up, 1002: Down, 1003: Right, 1004: Left
+int getKey() 
+{
+#ifdef _WIN32
+    int c=_getch();
+    if(c==0 || c==224) {
+        int n=_getch();
+        if(n==72)return 1001; //Up
+        if(n==80)return 1002; //Down
+        if(n==77)return 1003; //Right
+        if(n==75)return 1004; //Left
+        return 0;
+    }
+    if(c==8)return 127; //Backspace
+    if(c==13)return '\n'; //Enter
+    return c;
+#else
+    int c=getchar();
+    if(c==27) 
+    {    
+        // ESC
+        int n1=getchar();
+        if(n1=='[') {
+            int n2=getchar();
+            if(n2=='A')return 1001;//Up
+            if(n2=='B')return 1002;//Down
+            if(n2=='C')return 1003;//Right
+            if(n2=='D')return 1004;//Left 
+        }
+        return 27;
+    }
+    return c;
+#endif
+}
 int main() 
 {
     enableRawMode();
-    vector<string>menu= 
+    const char* menu[] = 
     {
-        "💗New Pink Screen",
-        "💞Display Princess Page",
+        "💗 New Pink Screen",
+        "💞 Display Princess Page",
         "🌸 Exit"
     };
+    int menuSize=3;
     int selected=0;
     clearScreen();
-    drawMenu(menu, selected);
-    bool running=1; 
-    while(running)
+    drawMenu(menu, menuSize, selected);
+    bool running=1;
+    while(running) 
     {
-        int key=readKey();
-        if(key==1001||key==1004)
-            selected=(selected-1+menu.size())%menu.size();
+        int key=getKey();
+        if(key==1001||key==1004)  
+            selected=(selected-1+menuSize)%menuSize;
         else if(key==1002||key==1003)
-            selected=(selected+1)%menu.size();
-        else if (key=='\n')
-        {
-            //Enter
+            selected=(selected+1)%menuSize;
+        else if(key=='\n') 
+        {//ENTER
             clearScreen();
-            switch(selected) 
+            int actionKey=0;
+            switch(selected)
             {
                 case 0:
                     printCenter("✨ Hello, Princess! ✨", "pink_bright");
-                    waitForRawEnter(); 
+                    actionKey=waitAndGetKey(); 
                     break;
                 case 1:
                     printCenter("💗 You look good today 💗", "pink_light");
-                    waitForRawEnter(); 
+                    actionKey=waitAndGetKey();
                     break;
                 case 2:
-                    printCenter("🌸 Bye Bye Princess, We'll miss you! 🌸", "pink_bright");
-                    waitForRawEnter();
-                    running=0; 
+                    printCenter("🌸 Bye Bye Princess 🌸", "pink_bright");
+                    sleep(1);
+                    running=0;
                     break;
             }
-            flushInput();
-            if(running)
+            if(actionKey==27)//ESC->Exit
+                running=0;
+            if(running) 
             {
                 clearScreen();
-                drawMenu(menu, selected);
+                drawMenu(menu, menuSize, selected);
             }
         }
-        else if(key==27||key==127||key=='x'||key=='X')
-        { 
-            //Exit: Esc, Backspace/Delete, or 'x'
+        else if(key==127) 
+        {
             clearScreen();
-            printCenter("🌸 Exiting... Bye Bye! 🌸", "pink_bright");
-            disableRawMode();
-            running=0; 
+            drawMenu(menu, menuSize, selected);
         }
+        else if(key==27) 
+            running=0;
         if(running)
-            drawMenu(menu, selected);
+            drawMenu(menu, menuSize, selected);
     }
     disableRawMode();
     return 0;
