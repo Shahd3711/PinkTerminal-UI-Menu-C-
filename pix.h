@@ -1,23 +1,19 @@
-#ifndef PIX_H
-#define PIX_H
-
+#ifndef TERMINAL_UTILS_H
+#define TERMINAL_UTILS_H
 #include <string>
 #include <utility>
-#include <vector>
-#include <termios.h>
- 
-extern struct termios orig_termios;
-
+using namespace std;
+enum colors{ black=30, red, green, yellow, blue, magenta, cyan, white,
+bright_black=90, bright_red, bright_green, bright_yellow,
+bright_blue, bright_magenta, bright_cyan, bright_white};
 void clearScreen();
-void setColor(const std::string& colorName);
+void setColor(const string& colorName);
 void gotoXY(int x, int y);
-std::pair<int,int> getTerminalSize();
-void printCenter(const std::string& text, const std::string& color="white");
-int readKey();
-void waitForRawEnter();
+pair<int,int> getTerminalSize();
+void printCenter(const string& text, const string& color);
+int waitAndGetKey(); 
 void flushInput();
 void enableRawMode();
 void disableRawMode();
-void drawMenu(const std::vector<std::string>& menu, int selected);
-
+void drawMenu(const char* menu[], int menuSize, int selected);
 #endif
